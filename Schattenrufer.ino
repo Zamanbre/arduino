@@ -29,7 +29,7 @@ int dauerbefehlnr = 0; //0 = aus, 1 = Leuchtkugeltest, 2 = Kombinationen
 int dauerbefehlvar = 0;
 int zustand = 0; //0 = aus; 1 = hochfahren; 2 = aktiv
 bool blockiert = false;
-const int hochfahrzeit = 1800000; //in Millisekunden
+const unsigned long hochfahrzeit = 1800000; //in Millisekunden
 int dauerbefehlar[10];
 
 char* schattenruferAD = "http://schattenrufer.local/json/state"; //"http://192.168.4.2/json/state"
@@ -100,14 +100,17 @@ void befehl(int eingabe) {
   }
   Serial.print("Befehl gesendet: ");
   Serial.println(eingabe);
+
+  bool gueltig = true;
+
   if (eingabe == 0) {
     backToNormal();
 
   } else if (eingabe == 300) { //blockade ein
     blockiert = true;
   
-    } else if (eingabe == 301) { //blockade aus
-    blockiert = false;
+  } else if (eingabe == 301) { //blockade aus
+  blockiert = false;
 
   } else if (eingabe == 41 && zustand == 0) { //Hochfahren
     //SR
@@ -131,6 +134,7 @@ void befehl(int eingabe) {
 
   } else if (eingabe == 85 && zustand == 2) { //rufen
     //SR
+    outputjson["on"] = true;
     outputjson["ps"] = 3;   
     jsonString = JSON.stringify(outputjson);
     sendJson(schattenruferAD,jsonString);
@@ -140,6 +144,7 @@ void befehl(int eingabe) {
     jsonString = JSON.stringify(outputjson);
     sendJson(sprungtorAD,jsonString);
     //ST
+    outputjson["on"] = true;
     outputjson["ps"] = 3;   
     jsonString = JSON.stringify(outputjson);
     sendJson(saeulenAD,jsonString);
@@ -148,6 +153,7 @@ void befehl(int eingabe) {
 
   } else if (eingabe == 198 && zustand == 2) { //zurückschicken 
     //SR
+    outputjson["on"] = true;
     outputjson["ps"] = 4;   
     jsonString = JSON.stringify(outputjson);
     sendJson(schattenruferAD,jsonString);
@@ -157,6 +163,7 @@ void befehl(int eingabe) {
     jsonString = JSON.stringify(outputjson);
     sendJson(sprungtorAD,jsonString);
     //ST
+    outputjson["on"] = true;
     outputjson["ps"] = 4;   
     jsonString = JSON.stringify(outputjson);
     sendJson(saeulenAD,jsonString);
@@ -165,14 +172,17 @@ void befehl(int eingabe) {
 
   } else if (eingabe == 147 && zustand == 2) { //agressiv 
     //SR
+    outputjson["on"] = true;
     outputjson["ps"] = 6;
     jsonString = JSON.stringify(outputjson);
     sendJson(schattenruferAD,jsonString);
     //TO
-    outputjson["on"] = false;  
+    outputjson["on"] = false;
+    outputjson["ps"] = -1;    
     jsonString = JSON.stringify(outputjson);
     sendJson(sprungtorAD,jsonString);
     //ST
+    outputjson["on"] = true;
     outputjson["ps"] = 6;
     jsonString = JSON.stringify(outputjson);
     sendJson(saeulenAD,jsonString);
@@ -181,14 +191,17 @@ void befehl(int eingabe) {
 
   } else if (eingabe == 170 && zustand == 2) { //passiv
     //SR
+    outputjson["on"] = true;
     outputjson["ps"] = 7; 
     jsonString = JSON.stringify(outputjson);
     sendJson(schattenruferAD,jsonString);
     //TO
-    outputjson["on"] = false;  
+    outputjson["on"] = false;
+    outputjson["ps"] = -1;  
     jsonString = JSON.stringify(outputjson);
     sendJson(sprungtorAD,jsonString);
     //ST
+    outputjson["on"] = true;
     outputjson["ps"] = 7;
     jsonString = JSON.stringify(outputjson);
     sendJson(saeulenAD,jsonString);
@@ -201,6 +214,7 @@ void befehl(int eingabe) {
     sendJson(schattenruferAD,jsonString);
     sendJson(sprungtorAD,jsonString);
     sendJson(saeulenAD,jsonString);
+
     mySwitch.send(16776963,24); //Off
     zustand = 0;
 
@@ -212,10 +226,18 @@ void befehl(int eingabe) {
     kombinationsschritt = 1;
     dauerbefehlnr = 2; //Kombinationsmodus
     portalEingabe();
+  
+  } else {
+    gueltig = false;
   }
+
+  if (gueltig && eingabe != kombistarter) { //gültige Befehle brechen Kombieingabe ab
+    dauerbefehlnr = 0;
+  } 
 
   if (dauerbefehlnr == 2 && eingabe != kombistarter) {
     kombicheck(eingabe);
+
   }
 }
 
@@ -260,12 +282,13 @@ void standartAn() {
   jsonString = JSON.stringify(outputjson);
   sendJson(schattenruferAD,jsonString);
   //ST
-  outputjson["on"] = true; 
+  outputjson["on"] = true;
   outputjson["ps"] = 2;
   jsonString = JSON.stringify(outputjson);
   sendJson(saeulenAD,jsonString);
   //TO
-  outputjson["on"] = false;  
+  outputjson["on"] = false;
+  outputjson["ps"] = -1;
   jsonString = JSON.stringify(outputjson);
   sendJson(sprungtorAD,jsonString);
 
@@ -285,6 +308,7 @@ void portalEffekt() {
   JSONVar outputjson;
   String jsonString;
   //SR
+  outputjson["on"] = true;
   outputjson["ps"] = 5;   
   jsonString = JSON.stringify(outputjson);
   sendJson(schattenruferAD,jsonString);
@@ -294,6 +318,7 @@ void portalEffekt() {
   jsonString = JSON.stringify(outputjson);
   sendJson(sprungtorAD,jsonString);
   //ST
+  outputjson["on"] = true;
   outputjson["ps"] = 5;   
   jsonString = JSON.stringify(outputjson);
   sendJson(saeulenAD,jsonString);
@@ -398,15 +423,32 @@ void loop() {
                 client.print(blockiert);
                 client.println(" <br>Letze Eingabe: ");
                 client.print(letzteEingabe);
-
-                
-                client.println(" Letze Kombi: ");
+                client.println(" <br>Letze Kombi: ");
                 client.print(letztekombi);
+
+                if (dauerbefehlnr == 2) {
+                  client.println(" <br>Kombinationsschritt: ");
+                  client.print(kombinationsschritt);
+                  client.println(" <br>Aktuelle Kombieingabe: ");
+                  for (int i = 0; i < laengeKombinationen; i++) {
+                    client.print(kombieingabe[i]);
+                    client.print(", ");
+                  }
+                }
+
                 if (zustand == 1) {
                   client.println(" <br>Timer noch in ms: ");
-                  client.print(hochfahrzeit-millis()-timer);
+                  client.print(hochfahrzeit-(millis()-timer));
                   client.println(" <br>Timer noch in min: ");
-                  client.print((hochfahrzeit-millis()-timer)/60000);                  
+                  client.print((hochfahrzeit-(millis()-timer))/60000);
+                  // client.println(" <br>Timer: ");
+                  // client.print(timer);
+                  // client.println(" <br>millis aktuell: ");
+                  // client.print(millis());
+                  // client.println(" <br>Differenz: ");
+                  // client.print(millis()-timer);
+                  // client.println(" <br>Hochfahrzeit: ");
+                  // client.print(hochfahrzeit);                      
                 }
               }
 
