@@ -41,7 +41,7 @@ const int anzahlKombinationen = 2;
 const int laengeKombinationen = 7; //7
 const int kombinationen [anzahlKombinationen][laengeKombinationen] = { //Befehle, die sich aus laengeKombinationen einzelbefehlen zusammensetzen
   {186, 244, 187, 214, 238, 174, 181},
-  {24, 199, 117, 235, 186, 187, 238}
+  {124, 199, 117, 235, 186, 187, 238}
 };
 
 int kombinationsschritt = 0; //markiert an welcher Stelle der Kombination man gerade ist
