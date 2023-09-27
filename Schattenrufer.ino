@@ -128,7 +128,7 @@ void befehl(int eingabe) {
     timer = millis();
     zustand = 1;
 
-  } else if (eingabe == 242) { //Direkt Hochfahren
+  } else if (eingabe == 243) { //Direkt Hochfahren
     standartAn();
     zustand = 2;
 
@@ -208,7 +208,7 @@ void befehl(int eingabe) {
 
     mySwitch.send(16776972,24); //Blau
 
-  } else if ((eingabe == 146 && zustand != 1) || eingabe == 248) { //Herunterfahren
+  } else if ((eingabe == 146 && zustand != 1) || eingabe == 249) { //Herunterfahren
     outputjson["on"] = false;   
     jsonString = JSON.stringify(outputjson);
     sendJson(schattenruferAD,jsonString);
@@ -218,7 +218,7 @@ void befehl(int eingabe) {
     mySwitch.send(16776963,24); //Off
     zustand = 0;
 
-  } else if (eingabe == 244 && zustand == 0) {
+  } else if (eingabe == 245 && zustand == 0) {
     dauerbefehlnr = 1; // Dauersenden Rot / Blau Wechsel
 
   } else if (eingabe == kombistarter && zustand == 2) {
